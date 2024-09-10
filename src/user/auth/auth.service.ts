@@ -15,11 +15,19 @@ interface SigninParams {
   password: string;
 }
 
+interface ProductKeyParams {
+  email: string;
+  userType: UserType;
+}
+
 @Injectable()
 export class AuthService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async signup({ name, phone, email, password }: SignupParams) {
+  async signup(
+    { name, phone, email, password }: SignupParams,
+    userType: UserType,
+  ) {
     const userExists = await this.prismaService.user.findUnique({
       where: {
         email,
@@ -38,12 +46,11 @@ export class AuthService {
         phone,
         email,
         password: hashedPassword,
-        user_type: UserType.BUYER,
+        user_type: userType,
       },
     });
 
     const token = await this.generateJWT(user.name, user.id);
-
     return token;
   }
 
@@ -67,8 +74,14 @@ export class AuthService {
     }
 
     const token = await this.generateJWT(user.name, user.id);
-
     return token;
+  }
+
+  async generateProductKey({ email, userType }: ProductKeyParams) {
+    const key = `${email}_${userType}_${process.env.PRODUCT_SECRET_KEY}`;
+
+    const hashedKey = await bcrypt.hash(key, 10);
+    return hashedKey;
   }
 
   private generateJWT(name: string, id: number) {
