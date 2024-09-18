@@ -1,5 +1,14 @@
 import { PropertyType } from '@prisma/client';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class HomeResponseDto {
   id: number;
@@ -14,11 +23,11 @@ export class HomeResponseDto {
   }
 
   @Exclude()
-  number_of_bathroom: number;
+  number_of_bathrooms: number;
 
   @Expose({ name: 'numberOfBathrooms' })
   numberOfBathrooms() {
-    return this.number_of_bathroom;
+    return this.number_of_bathrooms;
   }
 
   city: string;
@@ -41,7 +50,13 @@ export class HomeResponseDto {
     return this.land_size;
   }
 
-  propertyType: PropertyType;
+  @Exclude()
+  property_type: PropertyType;
+
+  @Expose({ name: 'propertyType' })
+  getPropertyType() {
+    return this.property_type;
+  }
 
   @Exclude()
   created_at: Date;
@@ -55,4 +70,44 @@ export class HomeResponseDto {
   constructor(partial: Partial<HomeResponseDto>) {
     Object.assign(this, partial);
   }
+}
+
+class Image {
+  @IsString()
+  @IsNotEmpty()
+  url: string;
+}
+
+export class CreateHomeDto {
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  numberOfBedrooms: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  numberOfBathroom: number;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsNumber()
+  @IsPositive()
+  price: number;
+
+  @IsNumber()
+  @IsPositive()
+  landSize: number;
+
+  @IsEnum(PropertyType)
+  propertyType: PropertyType;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Image)
+  images: Image[];
 }
