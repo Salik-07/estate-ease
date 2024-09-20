@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PropertyType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HomeResponseDto } from './dto/home.dto';
@@ -13,12 +13,20 @@ interface CreateHomeParams {
   propertyType: PropertyType;
   images: { url: string }[];
 }
+interface GetHomesParam {
+  city?: string;
+  price?: {
+    gte: number;
+    lte: number;
+  };
+  propertyType?: PropertyType;
+}
 
 @Injectable()
 export class HomeService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getHomes(): Promise<HomeResponseDto[]> {
+  async getHomes(filters: GetHomesParam): Promise<HomeResponseDto[]> {
     const homes = await this.prismaService.home.findMany({
       select: {
         id: true,
@@ -32,7 +40,12 @@ export class HomeService {
         property_type: true,
         images: { select: { url: true }, take: 1 },
       },
+      where: filters,
     });
+
+    if (!homes.length) {
+      throw new NotFoundException();
+    }
 
     return homes.map((home) => {
       const fetchHome = { ...home, image: home.images[0].url };
