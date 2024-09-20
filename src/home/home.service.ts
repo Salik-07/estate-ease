@@ -54,6 +54,31 @@ export class HomeService {
     });
   }
 
+  async getHomeById(id: number): Promise<HomeResponseDto> {
+    const home = await this.prismaService.home.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        address: true,
+        city: true,
+        price: true,
+        number_of_bathrooms: true,
+        number_of_bedrooms: true,
+        listed_date: true,
+        land_size: true,
+        property_type: true,
+        images: { select: { url: true } },
+        realtor: { select: { name: true, email: true, phone: true } },
+      },
+    });
+
+    if (!home) {
+      throw new NotFoundException(`Home with ID ${id} not found`);
+    }
+
+    return new HomeResponseDto(home);
+  }
+
   async createHome({
     address,
     numberOfBedrooms,
