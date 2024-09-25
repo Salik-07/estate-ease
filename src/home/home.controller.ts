@@ -9,11 +9,14 @@ import {
   Put,
   Query,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
-import { PropertyType } from '@prisma/client';
+import { PropertyType, UserType } from '@prisma/client';
 import { HomeService } from './home.service';
 import { CreateHomeDto, HomeResponseDto, UpdateHomeDto } from './dto/home.dto';
 import { User, UserInfo } from '../user/decoratos/user.decorator';
+import { AuthGuard } from '../guards/auth.guard';
+import { Roles } from '../decorators/roles.decorator';
 
 @Controller('home')
 export class HomeController {
@@ -48,11 +51,15 @@ export class HomeController {
     return this.homeService.getHomeById(id);
   }
 
+  @Roles(UserType.BUYER)
+  @UseGuards(AuthGuard)
   @Post()
   createHome(@Body() body: CreateHomeDto, @User() user: UserInfo) {
     return this.homeService.createHome(body, user.id);
   }
 
+  @Roles(UserType.BUYER)
+  @UseGuards(AuthGuard)
   @Put(':id')
   async updateHome(
     @Param('id', ParseIntPipe) id: number,
@@ -68,6 +75,8 @@ export class HomeController {
     return this.homeService.updateHomeById(id, body);
   }
 
+  @Roles(UserType.BUYER)
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteHome(
     @Param('id', ParseIntPipe) id: number,
