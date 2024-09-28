@@ -13,7 +13,12 @@ import {
 } from '@nestjs/common';
 import { PropertyType, UserType } from '@prisma/client';
 import { HomeService } from './home.service';
-import { CreateHomeDto, HomeResponseDto, UpdateHomeDto } from './dto/home.dto';
+import {
+  CreateHomeDto,
+  HomeResponseDto,
+  InquireDto,
+  UpdateHomeDto,
+} from './dto/home.dto';
 import { User, UserInfo } from '../user/decoratos/user.decorator';
 import { AuthGuard } from '../guards/auth.guard';
 import { Roles } from '../decorators/roles.decorator';
@@ -51,14 +56,14 @@ export class HomeController {
     return this.homeService.getHomeById(id);
   }
 
-  @Roles(UserType.BUYER)
+  @Roles(UserType.REALTOR)
   @UseGuards(AuthGuard)
   @Post()
   createHome(@Body() body: CreateHomeDto, @User() user: UserInfo) {
     return this.homeService.createHome(body, user.id);
   }
 
-  @Roles(UserType.BUYER)
+  @Roles(UserType.REALTOR)
   @UseGuards(AuthGuard)
   @Put(':id')
   async updateHome(
@@ -75,7 +80,7 @@ export class HomeController {
     return this.homeService.updateHomeById(id, body);
   }
 
-  @Roles(UserType.BUYER)
+  @Roles(UserType.REALTOR)
   @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteHome(
@@ -89,5 +94,15 @@ export class HomeController {
     }
 
     return this.homeService.deleteHomeById(id);
+  }
+
+  @Roles(UserType.BUYER)
+  @Post('/inquire/:id')
+  inquire(
+    @Param('id', ParseIntPipe) homeID: number,
+    @User() user: UserInfo,
+    @Body() { message }: InquireDto,
+  ) {
+    return this.homeService.inquire(user, homeID, message);
   }
 }
