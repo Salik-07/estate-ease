@@ -190,6 +190,16 @@ export class HomeService {
       where: {
         home_id: homeId,
       },
+      select: {
+        message: true,
+        buyer: {
+          select: {
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
     });
   }
 }
